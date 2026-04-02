@@ -100,18 +100,28 @@ def load_songs(csv_path: str) -> List[Dict]:
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """Score a single song against user preferences and return (score, reasons).
 
-    Scoring recipe:
+    Scoring recipe (original weights):
       +2.0 for genre match
       +1.0 for mood match
       +proximity for energy  (1.0 - abs(song_energy - target_energy))
+
+    Experiment: weight_shift=True halves genre weight (1.0) and doubles energy weight (x2.0)
+    to test whether energy becomes the dominant signal.
     """
     score = 0.0
     reasons: List[str] = []
 
+    # EXPERIMENT — weight shift: genre 2.0 → 1.0, energy multiplier 1.0 → 2.0
+    # Set to False to restore original weights
+    weight_shift = False
+
+    genre_weight = 1.0 if weight_shift else 2.0
+    energy_multiplier = 2.0 if weight_shift else 1.0
+
     # Genre match — highest weight because genre mismatch is immediately audible
     if song.get("genre") == user_prefs.get("genre"):
-        score += 2.0
-        reasons.append(f"genre match (+2.0)")
+        score += genre_weight
+        reasons.append(f"genre match (+{genre_weight})")
 
     # Mood match
     if song.get("mood") == user_prefs.get("mood"):
@@ -121,7 +131,7 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     # Energy proximity — rewards closeness, not just high or low values
     target_energy = user_prefs.get("energy", 0.5)
     song_energy = song.get("energy", 0.5)
-    energy_score = round(1.0 - abs(song_energy - target_energy), 3)
+    energy_score = round((1.0 - abs(song_energy - target_energy)) * energy_multiplier, 3)
     score += energy_score
     reasons.append(f"energy proximity ({song_energy:.2f} vs target {target_energy:.2f}, +{energy_score:.2f})")
 

@@ -119,57 +119,19 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Terminal Output
 
-Running `python -m src.main` with the default `pop / happy / 0.8` profile:
+Six profiles were tested — three standard, three adversarial edge cases.
 
 ![CLI Verification](CLI%20Verification.png)
 
-```
-Loaded songs: 20
-
-User profile:
-  Genre:  pop
-  Mood:   happy
-  Energy: 0.8
-
-Top recommendations:
-------------------------------------------------------------
-#1  Sunrise City — Neon Echo
-    Genre: pop  |  Mood: happy  |  Energy: 0.82
-    Score: 3.98
-    Why:   genre match (+2.0) | mood match (+1.0) | energy proximity (0.82 vs target 0.80, +0.98)
-
-#2  Gym Hero — Max Pulse
-    Genre: pop  |  Mood: intense  |  Energy: 0.93
-    Score: 2.87
-    Why:   genre match (+2.0) | energy proximity (0.93 vs target 0.80, +0.87)
-
-#3  Rooftop Lights — Indigo Parade
-    Genre: indie pop  |  Mood: happy  |  Energy: 0.76
-    Score: 1.96
-    Why:   mood match (+1.0) | energy proximity (0.76 vs target 0.80, +0.96)
-
-#4  Gold Chain Bounce — Crate Kings
-    Genre: hip-hop  |  Mood: upbeat  |  Energy: 0.8
-    Score: 1.00
-    Why:   energy proximity (0.80 vs target 0.80, +1.00)
-
-#5  Night Drive Loop — Neon Echo
-    Genre: synthwave  |  Mood: moody  |  Energy: 0.75
-    Score: 0.95
-    Why:   energy proximity (0.75 vs target 0.80, +0.95)
-```
-
-The results match expectations: `#1` hits all three criteria (genre + mood + close energy), `#2` matches genre but misses mood, and lower ranks rely on energy proximity alone.
+See [model_card.md](model_card.md) Section 7 for the full evaluation table and [reflection.md](reflection.md) for plain-language profile comparisons.
 
 ---
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
-
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+- **Weight shift:** Halved genre weight (2.0 → 1.0) and doubled energy multiplier. Top-1 results stayed the same for most profiles, but non-matching songs from other genres crept higher when their energy was a close fit. Shows the system is sensitive to weight choices.
+- **Adversarial profile — conflicting energy + mood:** A user asking for r&b/sad/energy 0.9 got a low-energy (0.33) sad track at #1 because genre+mood bonuses (3.0 pts) outweighed the energy gap penalty (0.57 pts). Genre dominance is a real bias.
+- **Adversarial profile — missing genre/mood combo:** A classical/angry user got the only classical song (#1) and the only angry song (#2) — never a combination of both, because it does not exist in the catalog.
 
 ---
 
