@@ -121,7 +121,13 @@ You can add more tests in `tests/test_recommender.py`.
 
 Six profiles were tested — three standard, three adversarial edge cases.
 
-![CLI Verification](CLI%20Verification.png)
+![Stress Test 1 — High-Energy Pop & Chill Lofi](Stress%20Test%20with%20Diverse%20Profiles.png)
+
+![Stress Test 2 — Deep Intense Rock](Stress%20Test%20with%20Diverse%20Profiles2.png)
+
+![Stress Test 3 — Adversarial: High Energy + Sad & Classical + Angry](Stress%20Test%20with%20Diverse%20Profiles3.png)
+
+![Stress Test 4 — Adversarial: Perfect Middle](Stress%20Test%20with%20Diverse%20Profiles4.png)
 
 See [model_card.md](model_card.md) Section 7 for the full evaluation table and [reflection.md](reflection.md) for plain-language profile comparisons.
 
