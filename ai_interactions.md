@@ -10,19 +10,21 @@
 
 **What task did you give the agent?**
 
-<!-- Describe the goal you asked the agent to accomplish -->
+Implement the TODO stubs in `src/recommender.py` (`load_songs`, `score_song`, `recommend_songs`, `Recommender.recommend`, `Recommender.explain_recommendation`) so the CLI in `src/main.py` actually runs and produces the scored, ranked output described in the README and model card.
 
 **Prompts used:**
 
-<!-- Paste the key prompts you gave the agent -->
+"Fill in recommender.py TODOs using the Algorithm Recipe from the README (genre +2, mood +1, energy proximity). Fix main.py's import so `python -m src.main` works. Expand the 10-song catalog to 20 songs to match model_card.md."
 
 **What did the agent generate or change?**
 
-<!-- List the files edited, code generated, or commands run -->
+- `src/recommender.py`: CSV loader (csv.DictReader), scoring function, sort-and-slice ranking, dataclass-based `Recommender.recommend`/`explain_recommendation`.
+- `src/main.py`: fixed `from recommender import` (broke under `python -m src.main`) to `from src.recommender import`; reformatted print output to match target terminal layout.
+- `data/songs.csv`: added 10 rows to bring catalog to 20 songs across hip-hop, r&b, classical, metal, blues, country, electronic, folk.
 
 **What did you verify or fix manually?**
 
-<!-- Describe anything the agent got wrong or that required human review -->
+Ran `pytest` (2 passed) and `python -m src.main` and diffed the printed scores/reasons against the target screenshots line by line to confirm genre/mood/energy math matched exactly (e.g. Sunrise City score 3.98, Gold Chain Bounce energy-proximity 1.00). Also swapped an em dash in the output for a plain hyphen since Windows console (cp1252) garbled it.
 
 ---
 
