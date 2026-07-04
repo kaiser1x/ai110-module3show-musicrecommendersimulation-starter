@@ -30,37 +30,64 @@ class UserProfile:
     target_energy: float
     likes_acoustic: bool
 
+class ScoringStrategy:
+    """
+    Strategy interface for scoring a song against a user profile.
+    Lets the weighting scheme change (e.g. weight-shift experiments)
+    without touching Recommender or its callers.
+    """
+    def score(self, user: "UserProfile", song: Song) -> float:
+        raise NotImplementedError
+
+    def explain(self, user: "UserProfile", song: Song) -> str:
+        raise NotImplementedError
+
+
+class WeightedScoring(ScoringStrategy):
+    """
+    Default scoring: genre match, mood match, energy proximity,
+    each weighted independently.
+    """
+    def __init__(self, genre_weight: float = 2.0, mood_weight: float = 1.0):
+        self.genre_weight = genre_weight
+        self.mood_weight = mood_weight
+
+    def score(self, user: "UserProfile", song: Song) -> float:
+        genre_score = self.genre_weight if song.genre == user.favorite_genre else 0.0
+        mood_score = self.mood_weight if song.mood == user.favorite_mood else 0.0
+        energy_score = 1.0 - abs(song.energy - user.target_energy)
+        return genre_score + mood_score + energy_score
+
+    def explain(self, user: "UserProfile", song: Song) -> str:
+        parts = []
+        if song.genre == user.favorite_genre:
+            parts.append(f"genre match (+{self.genre_weight:.1f})")
+        if song.mood == user.favorite_mood:
+            parts.append(f"mood match (+{self.mood_weight:.1f})")
+        energy_gap = abs(song.energy - user.target_energy)
+        parts.append(f"energy proximity ({song.energy:.2f} vs target {user.target_energy:.2f}, +{1.0 - energy_gap:.2f})")
+        return " | ".join(parts)
+
+
 class Recommender:
     """
     OOP implementation of the recommendation logic.
     Required by tests/test_recommender.py
     """
-    def __init__(self, songs: List[Song]):
+    def __init__(self, songs: List[Song], strategy: Optional[ScoringStrategy] = None):
         self.songs = songs
+        self.strategy = strategy or WeightedScoring()
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
         scored = [
-            (self._score(user, song), song)
+            (self.strategy.score(user, song), song)
             for song in self.songs
         ]
         scored.sort(key=lambda pair: pair[0], reverse=True)
         return [song for _, song in scored[:k]]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        parts = []
-        if song.genre == user.favorite_genre:
-            parts.append("genre match (+2.0)")
-        if song.mood == user.favorite_mood:
-            parts.append("mood match (+1.0)")
-        energy_gap = abs(song.energy - user.target_energy)
-        parts.append(f"energy proximity ({song.energy:.2f} vs target {user.target_energy:.2f}, +{1.0 - energy_gap:.2f})")
-        return " | ".join(parts)
-
-    def _score(self, user: UserProfile, song: Song) -> float:
-        genre_score = 2.0 if song.genre == user.favorite_genre else 0.0
-        mood_score = 1.0 if song.mood == user.favorite_mood else 0.0
-        energy_score = 1.0 - abs(song.energy - user.target_energy)
-        return genre_score + mood_score + energy_score
+        return self.strategy.explain(user, song)
 
 def load_songs(csv_path: str) -> List[Dict]:
     """

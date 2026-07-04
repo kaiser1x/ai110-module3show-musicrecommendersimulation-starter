@@ -34,12 +34,12 @@ Ran `pytest` (2 passed) and `python -m src.main` and diffed the printed scores/r
 
 **Which design pattern did you use?**
 
-<!-- e.g., Strategy, Factory, Observer, etc. -->
+Strategy.
 
 **How did AI help you brainstorm or implement it?**
 
-<!-- Describe the conversation or suggestions that led to your decision -->
+The README documents a "weight-shift experiment" (genre weight 2.0 → 1.0, energy doubled) that originally required editing the scoring formula inline inside `Recommender._score`. Asked the agent how to make that experiment a config change instead of a code change — it suggested pulling the scoring formula out into a `ScoringStrategy` interface with a default `WeightedScoring` implementation, injected into `Recommender` at construction time.
 
 **How does the pattern appear in your final code?**
 
-<!-- Point to the relevant class or method -->
+`src/recommender.py`: `ScoringStrategy` (interface with `score`/`explain`) and `WeightedScoring(genre_weight, mood_weight)` (default implementation). `Recommender.__init__(songs, strategy=None)` takes an optional strategy and defaults to `WeightedScoring()`. Running the weight-shift experiment is now `Recommender(songs, WeightedScoring(genre_weight=1.0))` instead of editing the scoring method.
